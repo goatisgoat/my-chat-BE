@@ -10,6 +10,12 @@ const ConversationSchema = Schema(
   { timestamps: true }
 );
 
+ConversationSchema.methods.toJSON = function () {
+  const obj = this._doc;
+  delete obj.__v;
+  return obj;
+};
+
 const Conversation = mongoose.model("conversation", ConversationSchema);
 
 module.exports = Conversation;

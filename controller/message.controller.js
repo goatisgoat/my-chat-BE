@@ -1,26 +1,19 @@
 const Message = require("../models/Message");
-const Conversation = require("../models/Conversation");
 
 const messageController = {};
 
-messageController.createMessage = async (req, res) => {
+messageController.createMessage = async (req, res, next) => {
   try {
+    const { conversationId, senderId, text } = req.body;
+
     const newMessage = new Message({
-      conversationId: req.body.conversationId,
-      sender: req.body.sender,
-      text: req.body.text,
+      conversationId,
+      senderId,
+      text,
     });
     const savedMessage = await newMessage.save();
-    await Conversation.updateOne(
-      { _id: req.body.conversationId },
-      {
-        $set: {
-          updatedAt: new Date(),
-          lastSenderName: req.body.lastSenderName,
-          lastMessage: req.body.text,
-        },
-      }
-    );
+
+    next();
 
     res.status(200).json({ status: "success", savedMessage });
   } catch (error) {

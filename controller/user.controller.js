@@ -52,18 +52,22 @@ userController.findUser = async (req, res) => {
   }
 };
 
+//메시지 페이지에서 유저 찾기
 userController.findUserInMessage = async (req, res) => {
   try {
-    const conversationId = req.params.conversationId;
-    const { userId } = req.body;
+    const { conversationId, userId } = req.body;
     const conversation = await Conversation.findOne({ _id: conversationId });
 
-    const friendId = conversation.members.find((i) => i !== userId);
-    const friendInfo = await User.findOne({ _id: friendId });
+    const receivedFriendId = conversation.members.find(
+      (i) => i.userId !== userId
+    );
 
-    if (friendInfo) {
-      res.status(200).json({ status: "success", friendInfo });
+    const friendInfo = await User.findOne({ _id: receivedFriendId.userId });
+
+    if (!friendInfo) {
+      throw new Error("유저를 찾을 수 없습니다.");
     }
+    res.status(200).json({ status: "success", friendInfo });
   } catch (error) {
     res.status(400).json({ status: "fail", error });
   }
@@ -75,15 +79,17 @@ userController.findAllUsers = async (req, res) => {
     const allUsers = await User.find({
       _id: { $ne: userId },
     });
-    console.log(allUsers);
-    if (allUsers) {
-      res.status(200).json({ status: "success", allUsers });
+
+    if (!allUsers) {
+      throw new Error("유저를 찾을 수 없습니다.");
     }
+    res.status(200).json({ status: "success", allUsers });
   } catch (error) {
     res.status(400).json({ status: "fail", error });
   }
 };
 
+//헤더 토큰으로 유저 찾기
 userController.getUser = async (req, res) => {
   try {
     const id = req.body.userId;
